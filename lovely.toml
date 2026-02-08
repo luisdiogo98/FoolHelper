@@ -1,0 +1,139 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 69
+
+# set fool helper position
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "G.deck.T.x = G.TILE_W - G.deck.T.w - 0.5"
+position = "before"
+payload = "G.foolA.T.x = G.jokers.T.x + G.jokers.T.w + G.consumeables.T.w - 1.5 * G.foolA.T.w"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "G.deck.T.x = G.TILE_W - G.deck.T.w - 0.5"
+position = "before"
+payload = "G.foolA.T.y = G.consumeables.T.y + G.consumeables.T.h + 0.4"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "G.consumeables:hard_set_VT()"
+position = "before"
+payload = "G.foolA:hard_set_VT()"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "game.lua"
+pattern = "consumeable_W = 2.3*G.CARD_W,"
+position = "before"
+payload = "fool_W = G.CARD_W * 0.4, fool_H = G.CARD_H * 0.4,"
+match_indent = true
+
+# stop fool helper from preventing spawning of fool cards
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = "self.debuff = false"
+position = "before"
+payload = "self.phantom = false"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = "function Card:set_debuff(should_debuff)"
+position = "before"
+payload = '''
+function Card:set_phantom(should_phantom)
+    self.phantom = should_phantom
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "functions/misc_functions.lua"
+pattern = '''
+for k, v in pairs(G.consumeables.cards) do
+    if v and type(v) == 'table' and v.ability.name == name and (non_debuff or not v.debuff) then
+      table.insert(jokers, v)
+    end
+'''
+position = "at"
+payload = '''
+for k, v in pairs(G.consumeables.cards) do
+    if v and type(v) == 'table' and v.ability.name == name and (non_debuff or not v.debuff) and not v.phantom then
+      table.insert(jokers, v)
+    end
+'''
+match_indent = false
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "discover = area==G.jokers or area==G.consumeables, "
+position = "before"
+payload = "skip_ability = area==G.foolA,"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = "self.bypass_lock = self.params.bypass_lock"
+position = "before"
+payload = "self.skip_ability = self.params.skip_ability"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = '''
+if not G.OVERLAY_MENU then 
+        for k, v in pairs(G.P_CENTERS) do
+            if v.name == self.ability.name then
+                G.GAME.used_jokers[k] = true
+            end
+        end
+    end
+'''
+position = "at"
+payload = '''
+if (not G.OVERLAY_MENU) and (not self.skip_ability) then 
+        for k, v in pairs(G.P_CENTERS) do
+            if v.name == self.ability.name then
+                G.GAME.used_jokers[k] = true
+            end
+        end
+    end
+    '''
+match_indent = false
+
+# create fool helper area
+[[patches]]
+[patches.pattern]
+target = "game.lua"
+pattern = "self.consumeables = CardArea("
+position = "before"
+payload = "self.foolA = CardArea(0, 0, CAI.fool_W, CAI.fool_H, {card_limit = 1, type = 'title', highlight_limit = 0})"
+match_indent = true
+
+# spawn fool card in fool helper area
+[[patches]]
+[patches.pattern]
+target = "game.lua"
+pattern = 'G.SPLASH_BACK = Sprite(-30, -6, G.ROOM.T.w+60, G.ROOM.T.h+12, G.ASSET_ATLAS["ui_1"], {x = 2, y = 0})'
+position = "before"
+payload = '''
+local f_card = create_card('Tarot', self.foolA, nil, nil, nil, nil, 'c_fool', '')
+f_card:set_phantom(true)
+f_card:hard_set_T(nil, nil, G.CARD_W * 0.4, G.CARD_H * 0.4)
+self.foolA:emplace(f_card)
+'''
+match_indent = true
