@@ -115,20 +115,49 @@ if (not G.OVERLAY_MENU) and (not self.skip_ability) then
     '''
 match_indent = false
 
+# prevent fool card area from saving state
+[[patches]]
+[patches.pattern]
+target = "cardarea.lua"
+pattern = "self.config.type = config.type or 'deck'"
+position = "before"
+payload = "self.config.phantom = config.phantom"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "cardarea.lua"
+pattern = '''
+if not self.cards then return end
+    local cardAreaTable = {
+        cards = {},
+        config = self.config,
+    }
+'''
+position = "at"
+payload = '''
+if not self.cards or self.config.phantom then return end
+    local cardAreaTable = {
+        cards = {},
+        config = self.config,
+    }
+'''
+match_indent = false
+
 # create fool helper area
 [[patches]]
 [patches.pattern]
 target = "game.lua"
 pattern = "self.consumeables = CardArea("
 position = "before"
-payload = "self.foolA = CardArea(0, 0, CAI.fool_W, CAI.fool_H, {card_limit = 1, type = 'title', highlight_limit = 0})"
+payload = "self.foolA = CardArea(0, 0, CAI.fool_W, CAI.fool_H, {card_limit = 1, type = 'title', highlight_limit = 0, phantom = true})"
 match_indent = true
 
 # spawn fool card in fool helper area
 [[patches]]
 [patches.pattern]
 target = "game.lua"
-pattern = 'G.SPLASH_BACK = Sprite(-30, -6, G.ROOM.T.w+60, G.ROOM.T.h+12, G.ASSET_ATLAS["ui_1"], {x = 2, y = 0})'
+pattern = 'delay(0.5)'
 position = "before"
 payload = '''
 local f_card = create_card('Tarot', self.foolA, nil, nil, nil, nil, 'c_fool', '')
