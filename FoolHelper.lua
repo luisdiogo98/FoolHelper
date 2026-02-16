@@ -1,0 +1,9 @@
+--- STEAMODDED HEADER
+--- MOD_NAME: Fool Helper
+--- MOD_ID: foolHelper
+--- PREFIX: FE
+--- MOD_AUTHOR: [TheThirdMan]
+--- MOD_DESCRIPTION: Balatro mod with quality of life helper for last player Tarot/Planet card.
+--- LOADER_VERSION_GEQ: 1.1.0
+--- VERSION: 1.1.0
+--- BADGE_COLOR: FC03DF

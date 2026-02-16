@@ -78,7 +78,7 @@ match_indent = false
 [[patches]]
 [patches.pattern]
 target = "functions/common_events.lua"
-pattern = "discover = area==G.jokers or area==G.consumeables, "
+pattern = "bypass_back = G.GAME.selected_back.pos})"
 position = "before"
 payload = "skip_ability = area==G.foolA,"
 match_indent = true
@@ -96,22 +96,10 @@ match_indent = true
 target = "card.lua"
 pattern = '''
 if not G.OVERLAY_MENU then 
-        for k, v in pairs(G.P_CENTERS) do
-            if v.name == self.ability.name then
-                G.GAME.used_jokers[k] = true
-            end
-        end
-    end
 '''
 position = "at"
 payload = '''
 if (not G.OVERLAY_MENU) and (not self.skip_ability) then 
-        for k, v in pairs(G.P_CENTERS) do
-            if v.name == self.ability.name then
-                G.GAME.used_jokers[k] = true
-            end
-        end
-    end
     '''
 match_indent = false
 
